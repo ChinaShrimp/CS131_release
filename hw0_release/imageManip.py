@@ -20,7 +20,7 @@ def load(image_path):
 
     ### YOUR CODE HERE
     # Use skimage io.imread
-    pass
+    out = io.imread(image_path)
     ### END YOUR CODE
 
     # Let's convert the image to be between the correct range.
@@ -45,7 +45,12 @@ def dim_image(image):
     out = None
 
     ### YOUR CODE HERE
-    pass
+    data = image.reshape(image.shape[0]*image.shape[1]*image.shape[2])
+    
+    for idx,v in enumerate(data):
+        data[idx] = 0.5*v*v
+
+    out = data.reshape(image.shape[0], image.shape[1], image.shape[2])
     ### END YOUR CODE
 
     return out
@@ -66,7 +71,7 @@ def convert_to_grey_scale(image):
     out = None
 
     ### YOUR CODE HERE
-    pass
+    out = color.rgb2gray(image)
     ### END YOUR CODE
 
     return out
@@ -86,7 +91,15 @@ def rgb_exclusion(image, channel):
     out = None
 
     ### YOUR CODE HERE
-    pass
+    out = image.copy()
+    if channel == 'R':
+        out[:,:,0] = 0.0
+    elif channel == 'G':
+        out[:,:,1] = 0.0
+    elif channel == 'B':
+        out[:,:,2] = 0.0
+    else:
+        print("wrong channel info: {}".format(channel))
     ### END YOUR CODE
 
     return out
@@ -107,7 +120,14 @@ def lab_decomposition(image, channel):
     out = None
 
     ### YOUR CODE HERE
-    pass
+    if channel == 'L':
+        out = lab[:,:,0]
+    elif channel == 'A':
+        out = lab[:,:,1]
+    elif channel == 'B':
+        out = lab[:,:,2]
+    else:
+        print("Wrong channel: {}".format(channel))
     ### END YOUR CODE
 
     return out
@@ -128,7 +148,14 @@ def hsv_decomposition(image, channel='H'):
     out = None
 
     ### YOUR CODE HERE
-    pass
+    if channel == 'H':
+        out = hsv[:,:,0]
+    elif channel == 'S':
+        out = hsv[:,:,1]
+    elif channel == 'V':
+        out = hsv[:,:,2]
+    else:
+        print("Wrong channel input: {}".format(channel))
     ### END YOUR CODE
 
     return out
@@ -153,8 +180,19 @@ def mix_images(image1, image2, channel1, channel2):
     """
 
     out = None
+    if image1.shape != image2.shape:
+        print("Error: shape of two images should be the same!")
+        return out
+    
     ### YOUR CODE HERE
-    pass
+    half_image_width = int(image1.shape[0]/2)
+    half_image_height = int(image1.shape[1]/2)
+    
+    image1_m = rgb_exclusion(image1, channel1)
+    image2_m = rgb_exclusion(image2, channel2)
+    
+    out = np.concatenate((image1_m[:,:half_image_width,:], \
+                        image2_m[:,half_image_width:,:]), axis=1)
     ### END YOUR CODE
 
     return out
@@ -183,7 +221,17 @@ def mix_quadrants(image):
     out = None
 
     ### YOUR CODE HERE
-    pass
+    half_height = int(image.shape[0]/2)
+    half_width = int(image.shape[1]/2)
+    
+    tl = rgb_exclusion(image, 'R')
+    tr = dim_image(image)
+    bl = np.sqrt(image)
+    br = tl
+    
+    up = np.concatenate((tl[:half_height,:half_width,:], tr[:half_height,half_width:,:]), axis=1)
+    down = np.concatenate((bl[half_height:,:half_width,:], br[half_height:,half_width:,:]), axis=1)
+    out = np.concatenate((up, down))
     ### END YOUR CODE
 
     return out
